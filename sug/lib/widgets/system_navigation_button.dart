@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/category_theme.dart';
+import '../models/language_settings.dart';
 
 enum NavButtonType {
   next,
@@ -60,6 +61,7 @@ class _SystemNavigationButtonState extends State<SystemNavigationButton> with Si
   @override
   Widget build(BuildContext context) {
     final color = widget.category.accentColor;
+    final isArabic = LanguageSettings.isArabic;
     
     // Gradient definitions mapping to the active theme color
     final primaryGradient = LinearGradient(
@@ -104,7 +106,7 @@ class _SystemNavigationButtonState extends State<SystemNavigationButton> with Si
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Next',
+                        isArabic ? 'التالي' : 'Next',
                         style: GoogleFonts.montserrat(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -119,7 +121,7 @@ class _SystemNavigationButtonState extends State<SystemNavigationButton> with Si
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          Icons.arrow_forward_rounded,
+                          isArabic ? Icons.arrow_back_rounded : Icons.arrow_forward_rounded,
                           color: color,
                           size: 11,
                         ),
@@ -127,7 +129,7 @@ class _SystemNavigationButtonState extends State<SystemNavigationButton> with Si
                     ],
                   )
                 : Text(
-                    'Home Page',
+                    isArabic ? 'الصفحة الرئيسية' : 'Home Page',
                     style: GoogleFonts.montserrat(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

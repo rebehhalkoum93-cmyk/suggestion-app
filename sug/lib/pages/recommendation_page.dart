@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dio/dio.dart';
@@ -80,13 +78,8 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
     try {
       final dio = Dio();
 
-      // Determine the backend URL dynamically (handling loopback for Android emulator)
-      String baseUrl = 'http://localhost:8000';
-      if (!kIsWeb) {
-        if (Platform.isAndroid) {
-          baseUrl = 'http://10.0.2.2:8000';
-        }
-      }
+      // Points directly to the deployed Railway backend endpoint
+      String baseUrl = 'https://angelic-liberation-production-e981.up.railway.app';
 
       final response = await dio.post(
         '$baseUrl/recommend',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'language_settings.dart';
 
 enum CategoryType {
   music,
@@ -19,24 +20,26 @@ extension CategoryTypeExtension on CategoryType {
   }
 
   String get displayName {
+    final isArabic = LanguageSettings.isArabic;
     switch (this) {
       case CategoryType.music:
-        return 'Music';
+        return isArabic ? 'موسيقى' : 'Music';
       case CategoryType.movie:
-        return 'Movie';
+        return isArabic ? 'أفلام' : 'Movie';
       case CategoryType.series:
-        return 'Series';
+        return isArabic ? 'مسلسلات' : 'Series';
     }
   }
 
   String get lowercaseLabel {
+    final isArabic = LanguageSettings.isArabic;
     switch (this) {
       case CategoryType.music:
-        return 'music';
+        return isArabic ? 'موسيقى' : 'music';
       case CategoryType.movie:
-        return 'movies';
+        return isArabic ? 'أفلام' : 'movies';
       case CategoryType.series:
-        return 'series';
+        return isArabic ? 'مسلسلات' : 'series';
     }
   }
 

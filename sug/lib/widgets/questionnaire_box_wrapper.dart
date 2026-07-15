@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/category_theme.dart';
+import '../models/language_settings.dart';
 
 class QuestionnaireBoxWrapper extends StatelessWidget {
   final String question;
@@ -20,23 +21,27 @@ class QuestionnaireBoxWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Question Box
-        QuestionTextContainer(question: question),
+    final isArabic = LanguageSettings.isArabic;
+    return Directionality(
+      textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Question Box
+          QuestionTextContainer(question: question),
 
-        const SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-        // Options Stack
-        RadioSelectionGroup(
-          options: options,
-          selectedIndex: selectedIndex,
-          category: category,
-          onSelected: onSelected,
-        ),
-      ],
+          // Options Stack
+          RadioSelectionGroup(
+            options: options,
+            selectedIndex: selectedIndex,
+            category: category,
+            onSelected: onSelected,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -48,6 +53,7 @@ class QuestionTextContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = LanguageSettings.isArabic;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
@@ -56,12 +62,12 @@ class QuestionTextContainer extends StatelessWidget {
         border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 1.0),
       ),
       child: Text(
-        question.toLowerCase(),
+        isArabic ? question : question.toLowerCase(),
         style: GoogleFonts.montserrat(
           color: Colors.white,
-          fontSize: 12.5,
+          fontSize: isArabic ? 14.5 : 12.5,
           fontWeight: FontWeight.w400,
-          letterSpacing: 0.4,
+          letterSpacing: isArabic ? 0.0 : 0.4,
           height: 1.5,
         ),
         textAlign: TextAlign.center,
@@ -149,6 +155,7 @@ class _RadioOptionItemState extends State<RadioOptionItem>
   Widget build(BuildContext context) {
     final themeColor = widget.category.accentColor;
     final isSelected = widget.isSelected;
+    final isArabic = LanguageSettings.isArabic;
 
     final defaultBorderColor = Colors.white.withValues(alpha: 0.22);
     final defaultTextColor = Colors.white.withValues(alpha: 0.7);
@@ -226,12 +233,12 @@ class _RadioOptionItemState extends State<RadioOptionItem>
                 // Text allowed to wrap across multiple lines
                 Expanded(
                   child: Text(
-                    widget.text.toLowerCase(),
+                    isArabic ? widget.text : widget.text.toLowerCase(),
                     style: GoogleFonts.montserrat(
                       color: isSelected ? themeColor : defaultTextColor,
-                      fontSize: 12,
+                      fontSize: isArabic ? 13 : 12,
                       fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
-                      letterSpacing: 0.3,
+                      letterSpacing: isArabic ? 0.0 : 0.3,
                       height: 1.45,
                     ),
                     // Allow wrapping — no maxLines limit

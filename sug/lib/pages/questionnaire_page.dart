@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/category_theme.dart';
+import '../models/language_settings.dart';
 import '../widgets/ambient_glow_background.dart';
 import '../widgets/questionnaire_box_wrapper.dart';
 import '../widgets/system_navigation_button.dart';
@@ -81,119 +82,127 @@ class _QuestionnairePageState extends State<QuestionnairePage>
     final currentQuestion = _questions[_currentQuestionIndex];
     final themeColor = widget.category.accentColor;
     final progress = (_currentQuestionIndex + 1) / _questions.length;
+    final isArabic = LanguageSettings.isArabic;
 
     return AmbientGlowBackground(
       category: widget.category,
       glowPositions: const [Alignment.topRight, Alignment.bottomLeft],
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── Header row ────────────────────────────────────────────────
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    color: Colors.white70,
-                    size: 20,
+      child: Directionality(
+        textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Header row ────────────────────────────────────────────────
+              Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      isArabic ? Icons.arrow_forward_ios_rounded : Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                    onPressed: _handleBack,
                   ),
-                  onPressed: _handleBack,
+                  const Spacer(),
+                  Text(
+                    isArabic
+                        ? 'السؤال ${_currentQuestionIndex + 1} من ${_questions.length}'
+                        : '${_currentQuestionIndex + 1} of ${_questions.length}',
+                    style: GoogleFonts.montserrat(
+                      color: Colors.white30,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 10),
+
+              // ── Animated progress bar ─────────────────────────────────────
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0, end: progress),
+                  duration: const Duration(milliseconds: 380),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, _) {
+                    return LinearProgressIndicator(
+                      value: value,
+                      minHeight: 3,
+                      backgroundColor: Colors.white.withValues(alpha: 0.08),
+                      valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                    );
+                  },
                 ),
-                const Spacer(),
-                Text(
-                  '${_currentQuestionIndex + 1} of ${_questions.length}',
+              ),
+
+              const SizedBox(height: 10),
+
+              // ── Instruction label ─────────────────────────────────────────
+              Center(
+                child: Text(
+                  isArabic
+                      ? 'الرجاء الإجابة على الأسئلة التالية'
+                      : 'please answer the following questions',
                   style: GoogleFonts.montserrat(
-                    color: Colors.white30,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            // ── Animated progress bar ─────────────────────────────────────
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: TweenAnimationBuilder<double>(
-                tween: Tween<double>(begin: 0, end: progress),
-                duration: const Duration(milliseconds: 380),
-                curve: Curves.easeOutCubic,
-                builder: (context, value, _) {
-                  return LinearProgressIndicator(
-                    value: value,
-                    minHeight: 3,
-                    backgroundColor: Colors.white.withValues(alpha: 0.08),
-                    valueColor: AlwaysStoppedAnimation<Color>(themeColor),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // ── Instruction label ─────────────────────────────────────────
-            Center(
-              child: Text(
-                'please answer the following questions',
-                style: GoogleFonts.montserrat(
-                  color: Colors.white.withValues(alpha: 0.35),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w300,
-                  letterSpacing: 0.6,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            // ── Scrollable question + options (prevents hard overflow) ─────
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: QuestionnaireBoxWrapper(
-                    key: ValueKey(_currentQuestionIndex),
-                    question: currentQuestion.questionText,
-                    options: currentQuestion.options.map((o) => o.text).toList(),
-                    selectedIndex: _selectedOptionIndex,
-                    category: widget.category,
-                    onSelected: (index) {
-                      setState(() {
-                        _selectedOptionIndex = index;
-                      });
-                    },
+                    color: Colors.white.withValues(alpha: 0.35),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w300,
+                    letterSpacing: isArabic ? 0.0 : 0.6,
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
-            // ── Next button (always pinned at bottom) ─────────────────────
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                AnimatedOpacity(
-                  opacity: _selectedOptionIndex != null ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: IgnorePointer(
-                    ignoring: _selectedOptionIndex == null,
-                    child: SystemNavigationButton.next(
+              // ── Scrollable question + options (prevents hard overflow) ─────
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: QuestionnaireBoxWrapper(
+                      key: ValueKey(_currentQuestionIndex),
+                      question: currentQuestion.localizedQuestionText,
+                      options: currentQuestion.options.map((o) => o.localizedText).toList(),
+                      selectedIndex: _selectedOptionIndex,
                       category: widget.category,
-                      onPressed: _handleNext,
+                      onSelected: (index) {
+                        setState(() {
+                          _selectedOptionIndex = index;
+                        });
+                      },
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
 
-            const SizedBox(height: 7),
-          ],
+              const SizedBox(height: 16),
+
+              // ── Next button (always pinned at bottom) ─────────────────────
+              Row(
+                mainAxisAlignment: isArabic ? MainAxisAlignment.start : MainAxisAlignment.end,
+                children: [
+                  AnimatedOpacity(
+                    opacity: _selectedOptionIndex != null ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: IgnorePointer(
+                      ignoring: _selectedOptionIndex == null,
+                      child: SystemNavigationButton.next(
+                        category: widget.category,
+                        onPressed: _handleNext,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 7),
+            ],
+          ),
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/category_theme.dart';
+import '../models/language_settings.dart';
 
 class CategorySelectionPill extends StatefulWidget {
   final CategoryType category;
@@ -44,101 +45,111 @@ class _CategorySelectionPillState extends State<CategorySelectionPill> with Sing
   @override
   Widget build(BuildContext context) {
     final color = widget.category.accentColor;
-    final displayName = widget.category.displayName;
     final isGlow = _isHovered || _isPressed;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTapDown: (_) {
-          _animController.forward();
-          setState(() => _isPressed = true);
-        },
-        onTapUp: (_) {
-          _animController.reverse();
-          setState(() => _isPressed = false);
-          widget.onTap();
-        },
-        onTapCancel: () {
-          _animController.reverse();
-          setState(() => _isPressed = false);
-        },
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutCubic,
-            width: 280,
-            height: 68,
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.55),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: isGlow ? color : color.withValues(alpha: 0.35),
-                width: isGlow ? 1.8 : 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: isGlow ? 0.5 : 0.15),
-                  blurRadius: isGlow ? 20 : 10,
-                  spreadRadius: isGlow ? 1 : 0,
-                  offset: const Offset(0, 2),
+    return ValueListenableBuilder<Language>(
+      valueListenable: LanguageSettings.currentLanguage,
+      builder: (context, lang, _) {
+        final displayName = widget.category.displayName;
+        final isArabic = LanguageSettings.isArabic;
+
+        return MouseRegion(
+          onEnter: (_) => setState(() => _isHovered = true),
+          onExit: (_) => setState(() => _isHovered = false),
+          child: GestureDetector(
+            onTapDown: (_) {
+              _animController.forward();
+              setState(() => _isPressed = true);
+            },
+            onTapUp: (_) {
+              _animController.reverse();
+              setState(() => _isPressed = false);
+              widget.onTap();
+            },
+            onTapCancel: () {
+              _animController.reverse();
+              setState(() => _isPressed = false);
+            },
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                width: 280,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: isGlow ? color : color.withValues(alpha: 0.35),
+                    width: isGlow ? 1.8 : 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withValues(alpha: isGlow ? 0.5 : 0.15),
+                      blurRadius: isGlow ? 20 : 10,
+                      spreadRadius: isGlow ? 1 : 0,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(
-                children: [
-                  // Left Slot: Circular boundary with centered vector-style icon
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.black.withValues(alpha: 0.8),
-                      border: Border.all(
-                        color: isGlow ? color : color.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        if (isGlow)
-                          BoxShadow(
-                            color: color.withValues(alpha: 0.3),
-                            blurRadius: 6,
-                            spreadRadius: 0.5,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Directionality(
+                    textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+                    child: Row(
+                      children: [
+                        // Left/Right Slot: Circular boundary with icon
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black.withValues(alpha: 0.8),
+                            border: Border.all(
+                              color: isGlow ? color : color.withValues(alpha: 0.4),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              if (isGlow)
+                                BoxShadow(
+                                  color: color.withValues(alpha: 0.3),
+                                  blurRadius: 6,
+                                  spreadRadius: 0.5,
+                                ),
+                            ],
                           ),
+                          child: Center(
+                            child: widget.category.buildIconWidget(
+                              color: color,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 18),
+                        
+                        // Right/Left Slot: High-contrast title label text
+                        Expanded(
+                          child: Text(
+                            displayName,
+                            style: GoogleFonts.montserrat(
+                              color: Colors.white,
+                              fontSize: isArabic ? 18 : 20,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: isArabic ? 0.0 : 0.8,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                    child: Center(
-                      child: widget.category.buildIconWidget(
-                        color: color,
-                        size: 20,
-                      ),
-                    ),
                   ),
-                  const SizedBox(width: 18),
-                  
-                  // Right Slot: High-contrast title label text
-                  Expanded(
-                    child: Text(
-                      displayName,
-                      style: GoogleFonts.montserrat(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
