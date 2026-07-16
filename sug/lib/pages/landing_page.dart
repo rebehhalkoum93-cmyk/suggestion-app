@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/category_theme.dart';
 import '../models/language_settings.dart';
 import '../widgets/ambient_glow_background.dart';
@@ -16,6 +15,11 @@ class LandingPage extends StatelessWidget {
       builder: (context, lang, _) {
         final isArabic = LanguageSettings.isArabic;
 
+        final screenH = MediaQuery.of(context).size.height;
+        final screenW = MediaQuery.of(context).size.width;
+        final s = screenH / 812.0;
+        final sw = screenW / 375.0;
+
         return AmbientGlowBackground(
           category: null,
           glowPositions: const [
@@ -23,7 +27,7 @@ class LandingPage extends StatelessWidget {
             Alignment.bottomLeft,
           ],
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            padding: EdgeInsets.symmetric(horizontal: 24 * sw, vertical: 20 * s),
             child: Column(
               children: [
                 // Top header with language switch toggle button
@@ -36,7 +40,7 @@ class LandingPage extends StatelessWidget {
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: EdgeInsets.symmetric(horizontal: 12 * sw, vertical: 6 * s),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(20),
@@ -50,15 +54,15 @@ class LandingPage extends StatelessWidget {
                           children: [
                             Icon(
                               Icons.language_rounded,
-                              size: 14,
+                              size: (14 * s).clamp(12.0, 20.0),
                               color: Colors.white.withValues(alpha: 0.8),
                             ),
-                            const SizedBox(width: 6),
+                            SizedBox(width: 6 * sw),
                             Text(
                               isArabic ? 'English' : 'العربية',
-                              style: GoogleFonts.montserrat(
+                              style: LanguageSettings.font(
                                 color: Colors.white.withValues(alpha: 0.8),
-                                fontSize: 11,
+                                fontSize: (11 * s).clamp(9.0, 16.0),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -69,7 +73,7 @@ class LandingPage extends StatelessWidget {
                   ),
                 ),
                 
-                const Spacer(flex: 2),
+                Spacer(flex: 2),
                 
                 // Centered selection pill container
                 Center(
@@ -80,12 +84,12 @@ class LandingPage extends StatelessWidget {
                         category: CategoryType.music,
                         onTap: () => _navigateToQuestionnaire(context, CategoryType.music),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24 * s),
                       CategorySelectionPill(
                         category: CategoryType.movie,
                         onTap: () => _navigateToQuestionnaire(context, CategoryType.movie),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24 * s),
                       CategorySelectionPill(
                         category: CategoryType.series,
                         onTap: () => _navigateToQuestionnaire(context, CategoryType.series),
@@ -94,20 +98,20 @@ class LandingPage extends StatelessWidget {
                   ),
                 ),
                 
-                const Spacer(flex: 3),
+                Spacer(flex: 3),
                 
                 // Footer branding anchor
                 Text(
                   isArabic ? 'أنشئ بواسطة رابح' : 'created by rebeh',
-                  style: GoogleFonts.montserrat(
+                  style: LanguageSettings.font(
                     color: Colors.white.withValues(alpha: 0.3),
-                    fontSize: 12,
+                    fontSize: (12 * s).clamp(10.0, 17.0),
                     fontWeight: FontWeight.w400,
                     letterSpacing: isArabic ? 0.0 : 1.2,
                   ),
                 ),
                 
-                const SizedBox(height: 12),
+                SizedBox(height: 12 * s),
               ],
             ),
           ),

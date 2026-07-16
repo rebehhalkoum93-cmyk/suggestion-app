@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:dio/dio.dart';
 import '../models/category_theme.dart';
+import '../models/language_settings.dart';
 import '../models/recommendation_questions.dart';
+import '../services/api_config.dart';
 import '../widgets/ambient_glow_background.dart';
 import '../widgets/system_navigation_button.dart';
 
@@ -78,18 +79,15 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
     try {
       final dio = Dio();
 
-      // Points directly to the deployed Railway backend endpoint
-      String baseUrl = 'https://angelic-liberation-production-e981.up.railway.app';
-
       final response = await dio.post(
-        '$baseUrl/recommend',
+        '${ApiConfig.baseUrl}${ApiConfig.recommendEndpoint}',
         data: {
           'category': widget.category.name,
           'answers': widget.userAnswers,
           'tags': _backendTags,
-          'excluded_titles': _shownTitles.toList(), // never repeat what the user has seen
+          'excluded_titles': _shownTitles.toList(),
         },
-      ).timeout(const Duration(seconds: 8));
+      ).timeout(ApiConfig.requestTimeout);
 
       if (response.statusCode == 200) {
         final List<dynamic> recsJson = response.data['recommendations'];
@@ -128,14 +126,14 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Text(
               'Backend Unreachable',
-              style: GoogleFonts.montserrat(
+              style: LanguageSettings.font(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
               ),
             ),
             content: Text(
-              'Could not connect to the recommendation server.\n\nMake sure the FastAPI backend is running at:\nhttp://localhost:8000',
-              style: GoogleFonts.montserrat(
+              'Could not connect to the recommendation server.\n\nBackend URL:\n${ApiConfig.baseUrl}',
+              style: LanguageSettings.font(
                 color: Colors.white60,
                 fontSize: 13,
                 height: 1.6,
@@ -149,7 +147,7 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
                 },
                 child: Text(
                   'Go Back',
-                  style: GoogleFonts.montserrat(color: Colors.white38),
+                  style: LanguageSettings.font(color: Colors.white38),
                 ),
               ),
               TextButton(
@@ -159,7 +157,7 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
                 },
                 child: Text(
                   'Retry',
-                  style: GoogleFonts.montserrat(
+                  style: LanguageSettings.font(
                     color: widget.category.accentColor,
                     fontWeight: FontWeight.w600,
                   ),
@@ -211,7 +209,7 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
                   children: [
                     Text(
                       lowercaseTitle,
-                      style: GoogleFonts.montserrat(
+                      style: LanguageSettings.font(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w400,
@@ -236,7 +234,7 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
                         ),
                         child: Text(
                           'regenerate',
-                          style: GoogleFonts.montserrat(
+                          style: LanguageSettings.font(
                             color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -272,7 +270,7 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
                           children: [
                             Text(
                               '${entry.key}: ',
-                              style: GoogleFonts.montserrat(
+                              style: LanguageSettings.font(
                                 color: Colors.white.withValues(alpha: 0.38),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
@@ -280,7 +278,7 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
                             ),
                             Text(
                               entry.value,
-                              style: GoogleFonts.montserrat(
+                              style: LanguageSettings.font(
                                 color: Colors.white.withValues(alpha: 0.87),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
@@ -393,7 +391,7 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
                   children: [
                     Text(
                       track.title.toLowerCase(),
-                      style: GoogleFonts.montserrat(
+                      style: LanguageSettings.font(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -405,7 +403,7 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
                     const SizedBox(height: 4),
                     Text(
                       track.subtitle?.toLowerCase() ?? '',
-                      style: GoogleFonts.montserrat(
+                      style: LanguageSettings.font(
                         color: Colors.white.withValues(alpha: 0.4),
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -481,7 +479,7 @@ class _RecommendationPageState extends State<RecommendationPage> with SingleTick
             // Underlying text metadata (e.g. movie1)
             Text(
               item.title.toLowerCase(),
-              style: GoogleFonts.montserrat(
+              style: LanguageSettings.font(
                 color: Colors.white.withValues(alpha: 0.65),
                 fontSize: 14,
                 fontWeight: FontWeight.w400,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/category_theme.dart';
 import '../models/language_settings.dart';
 import '../widgets/ambient_glow_background.dart';
@@ -84,13 +83,18 @@ class _QuestionnairePageState extends State<QuestionnairePage>
     final progress = (_currentQuestionIndex + 1) / _questions.length;
     final isArabic = LanguageSettings.isArabic;
 
+    final screenH = MediaQuery.of(context).size.height;
+    final screenW = MediaQuery.of(context).size.width;
+    final s = screenH / 812.0;
+    final hp = screenW / 375.0;
+
     return AmbientGlowBackground(
       category: widget.category,
       glowPositions: const [Alignment.topRight, Alignment.bottomLeft],
       child: Directionality(
         textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: EdgeInsets.symmetric(horizontal: 24 * hp, vertical: 20 * s),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -101,7 +105,7 @@ class _QuestionnairePageState extends State<QuestionnairePage>
                     icon: Icon(
                       isArabic ? Icons.arrow_forward_ios_rounded : Icons.arrow_back_ios_new_rounded,
                       color: Colors.white70,
-                      size: 20,
+                      size: (20 * s).clamp(16, 28),
                     ),
                     onPressed: _handleBack,
                   ),
@@ -110,20 +114,20 @@ class _QuestionnairePageState extends State<QuestionnairePage>
                     isArabic
                         ? 'السؤال ${_currentQuestionIndex + 1} من ${_questions.length}'
                         : '${_currentQuestionIndex + 1} of ${_questions.length}',
-                    style: GoogleFonts.montserrat(
+                    style: LanguageSettings.font(
                       color: Colors.white30,
-                      fontSize: 13,
+                      fontSize: (13 * s).clamp(11, 18),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 10),
+              SizedBox(height: 10 * s),
 
               // ── Animated progress bar ─────────────────────────────────────
               ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(4 * s),
                 child: TweenAnimationBuilder<double>(
                   tween: Tween<double>(begin: 0, end: progress),
                   duration: const Duration(milliseconds: 380),
@@ -131,7 +135,7 @@ class _QuestionnairePageState extends State<QuestionnairePage>
                   builder: (context, value, _) {
                     return LinearProgressIndicator(
                       value: value,
-                      minHeight: 3,
+                      minHeight: (3 * s).clamp(2.0, 5.0),
                       backgroundColor: Colors.white.withValues(alpha: 0.08),
                       valueColor: AlwaysStoppedAnimation<Color>(themeColor),
                     );
@@ -139,7 +143,7 @@ class _QuestionnairePageState extends State<QuestionnairePage>
                 ),
               ),
 
-              const SizedBox(height: 10),
+              SizedBox(height: 10 * s),
 
               // ── Instruction label ─────────────────────────────────────────
               Center(
@@ -147,16 +151,16 @@ class _QuestionnairePageState extends State<QuestionnairePage>
                   isArabic
                       ? 'الرجاء الإجابة على الأسئلة التالية'
                       : 'please answer the following questions',
-                  style: GoogleFonts.montserrat(
+                  style: LanguageSettings.font(
                     color: Colors.white.withValues(alpha: 0.35),
-                    fontSize: 11,
+                    fontSize: (11 * s).clamp(9, 15),
                     fontWeight: FontWeight.w300,
                     letterSpacing: isArabic ? 0.0 : 0.6,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 18),
+              SizedBox(height: 18 * s),
 
               // ── Scrollable question + options (prevents hard overflow) ─────
               Expanded(
@@ -180,7 +184,7 @@ class _QuestionnairePageState extends State<QuestionnairePage>
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16 * s),
 
               // ── Next button (always pinned at bottom) ─────────────────────
               Row(
@@ -200,7 +204,7 @@ class _QuestionnairePageState extends State<QuestionnairePage>
                 ],
               ),
 
-              const SizedBox(height: 7),
+              SizedBox(height: 7 * s),
             ],
           ),
         ),

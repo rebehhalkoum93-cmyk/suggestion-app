@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'models/language_settings.dart';
 import 'pages/landing_page.dart';
 
 void main() {
@@ -22,21 +23,30 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Media Sug',
-      debugShowCheckedModeBanner: false,
-      scrollBehavior: NoOverscrollBehavior(),
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black,
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF0000FF),
-          surface: Colors.black,
-        ),
-        textTheme: GoogleFonts.montserratTextTheme(ThemeData.dark().textTheme),
-        useMaterial3: true,
-      ),
-      home: const LandingPage(),
+    return ValueListenableBuilder<Language>(
+      valueListenable: LanguageSettings.currentLanguage,
+      builder: (context, lang, _) {
+        final textTheme = LanguageSettings.isArabic
+            ? GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme)
+            : GoogleFonts.montserratTextTheme(ThemeData.dark().textTheme);
+
+        return MaterialApp(
+          title: 'Media Sug',
+          debugShowCheckedModeBanner: false,
+          scrollBehavior: NoOverscrollBehavior(),
+          theme: ThemeData(
+            brightness: Brightness.dark,
+            scaffoldBackgroundColor: Colors.black,
+            colorScheme: const ColorScheme.dark(
+              primary: Color(0xFF0000FF),
+              surface: Colors.black,
+            ),
+            textTheme: textTheme,
+            useMaterial3: true,
+          ),
+          home: const LandingPage(),
+        );
+      },
     );
   }
 }

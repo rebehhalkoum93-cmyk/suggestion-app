@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/category_theme.dart';
 import '../models/language_settings.dart';
 
@@ -22,6 +21,9 @@ class QuestionnaireBoxWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isArabic = LanguageSettings.isArabic;
+    final screenH = MediaQuery.of(context).size.height;
+    final s = screenH / 812.0;
+
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Column(
@@ -31,7 +33,7 @@ class QuestionnaireBoxWrapper extends StatelessWidget {
           // Question Box
           QuestionTextContainer(question: question),
 
-          const SizedBox(height: 20),
+          SizedBox(height: 20 * s),
 
           // Options Stack
           RadioSelectionGroup(
@@ -54,18 +56,21 @@ class QuestionTextContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isArabic = LanguageSettings.isArabic;
+    final screenH = MediaQuery.of(context).size.height;
+    final s = screenH / 812.0;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: EdgeInsets.symmetric(horizontal: 20 * s, vertical: 14 * s),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12 * s),
         border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 1.0),
       ),
       child: Text(
         isArabic ? question : question.toLowerCase(),
-        style: GoogleFonts.montserrat(
+        style: LanguageSettings.font(
           color: Colors.white,
-          fontSize: isArabic ? 14.5 : 12.5,
+          fontSize: (isArabic ? 14.5 : 12.5) * s,
           fontWeight: FontWeight.w400,
           letterSpacing: isArabic ? 0.0 : 0.4,
           height: 1.5,
@@ -92,6 +97,9 @@ class RadioSelectionGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenH = MediaQuery.of(context).size.height;
+    final s = screenH / 812.0;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -102,7 +110,7 @@ class RadioSelectionGroup extends StatelessWidget {
             category: category,
             onTap: () => onSelected(i),
           ),
-          if (i < options.length - 1) const SizedBox(height: 10),
+          if (i < options.length - 1) SizedBox(height: 10 * s),
         ],
       ],
     );
@@ -157,8 +165,18 @@ class _RadioOptionItemState extends State<RadioOptionItem>
     final isSelected = widget.isSelected;
     final isArabic = LanguageSettings.isArabic;
 
+    final screenH = MediaQuery.of(context).size.height;
+    final s = screenH / 812.0;
+
     final defaultBorderColor = Colors.white.withValues(alpha: 0.22);
     final defaultTextColor = Colors.white.withValues(alpha: 0.7);
+
+    final radioSize = (18 * s).clamp(16.0, 26.0);
+    final dotSize = (6 * s).clamp(5.0, 9.0);
+    final optionFontSize = (isArabic ? 13 : 12) * s;
+    final optionHPad = (12 * s).clamp(10.0, 20.0);
+    final optionVPad = (10 * s).clamp(8.0, 18.0);
+    final radioTextGap = (12 * s).clamp(8.0, 18.0);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -175,11 +193,10 @@ class _RadioOptionItemState extends State<RadioOptionItem>
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
-            // Compact vertical padding — let the text wrap naturally
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: EdgeInsets.symmetric(horizontal: optionHPad, vertical: optionVPad),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(14 * s),
               border: Border.all(
                 color: isSelected
                     ? themeColor
@@ -200,11 +217,11 @@ class _RadioOptionItemState extends State<RadioOptionItem>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Smaller radio circle (20 → 18px) to save horizontal space
+                // Radio circle
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  width: 18,
-                  height: 18,
+                  width: radioSize,
+                  height: radioSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
@@ -218,8 +235,8 @@ class _RadioOptionItemState extends State<RadioOptionItem>
                   child: isSelected
                       ? Center(
                           child: Container(
-                            width: 6,
-                            height: 6,
+                            width: dotSize,
+                            height: dotSize,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               color: Colors.white,
@@ -228,20 +245,19 @@ class _RadioOptionItemState extends State<RadioOptionItem>
                         )
                       : null,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: radioTextGap),
 
                 // Text allowed to wrap across multiple lines
                 Expanded(
                   child: Text(
                     isArabic ? widget.text : widget.text.toLowerCase(),
-                    style: GoogleFonts.montserrat(
+                    style: LanguageSettings.font(
                       color: isSelected ? themeColor : defaultTextColor,
-                      fontSize: isArabic ? 13 : 12,
+                      fontSize: optionFontSize,
                       fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                       letterSpacing: isArabic ? 0.0 : 0.3,
                       height: 1.45,
                     ),
-                    // Allow wrapping — no maxLines limit
                     softWrap: true,
                   ),
                 ),

@@ -197,7 +197,7 @@ You MUST recommend completely different {item_description} not in the above list
 
     prompt = f"""You are a world-class, highly personalized entertainment recommendation engine with deep knowledge of music, cinema, and television.
 
-Based on the following 7-dimensional user preference tags — derived from a detailed questionnaire — recommend exactly 5 unique {item_description} that perfectly match the user's current mood, energy, and taste profile.
+Based on the following 7-dimensional user preference tags — derived from a detailed questionnaire — recommend exactly 10 unique {item_description} that perfectly match the user's current mood, energy, and taste profile.
 
 === USER PREFERENCE PROFILE ===
 {tags_formatted}

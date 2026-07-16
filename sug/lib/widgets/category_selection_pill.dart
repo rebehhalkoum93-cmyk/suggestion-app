@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/category_theme.dart';
 import '../models/language_settings.dart';
 
@@ -17,10 +16,11 @@ class CategorySelectionPill extends StatefulWidget {
   State<CategorySelectionPill> createState() => _CategorySelectionPillState();
 }
 
-class _CategorySelectionPillState extends State<CategorySelectionPill> with SingleTickerProviderStateMixin {
+class _CategorySelectionPillState extends State<CategorySelectionPill>
+    with SingleTickerProviderStateMixin {
   bool _isHovered = false;
   bool _isPressed = false;
-  
+
   late AnimationController _animController;
   late Animation<double> _scaleAnimation;
 
@@ -46,6 +46,19 @@ class _CategorySelectionPillState extends State<CategorySelectionPill> with Sing
   Widget build(BuildContext context) {
     final color = widget.category.accentColor;
     final isGlow = _isHovered || _isPressed;
+
+    final screenH = MediaQuery.of(context).size.height;
+    final screenW = MediaQuery.of(context).size.width;
+    final s = screenH / 812.0;
+    final sw = screenW / 375.0;
+
+    final pillWidth = (280 * sw).clamp(240.0, 400.0);
+    final pillHeight = (68 * s).clamp(56.0, 100.0);
+    final iconCircle = (44 * s).clamp(36.0, 64.0);
+    final iconSize = (20 * s).clamp(16.0, 30.0);
+    final iconLabelGap = (18 * sw).clamp(14.0, 28.0);
+    final labelFontSize = (18) * s;
+    final innerHPad = (14 * sw).clamp(10.0, 24.0);
 
     return ValueListenableBuilder<Language>(
       valueListenable: LanguageSettings.currentLanguage,
@@ -75,8 +88,8 @@ class _CategorySelectionPillState extends State<CategorySelectionPill> with Sing
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOutCubic,
-                width: 280,
-                height: 68,
+                width: pillWidth,
+                height: pillHeight,
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(999),
@@ -94,21 +107,25 @@ class _CategorySelectionPillState extends State<CategorySelectionPill> with Sing
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  padding: EdgeInsets.symmetric(horizontal: innerHPad),
                   child: Directionality(
-                    textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+                    textDirection: isArabic
+                        ? TextDirection.rtl
+                        : TextDirection.ltr,
                     child: Row(
                       children: [
-                        // Left/Right Slot: Circular boundary with icon
+                        // Circular boundary with icon
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          width: 44,
-                          height: 44,
+                          width: iconCircle,
+                          height: iconCircle,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.black.withValues(alpha: 0.8),
                             border: Border.all(
-                              color: isGlow ? color : color.withValues(alpha: 0.4),
+                              color: isGlow
+                                  ? color
+                                  : color.withValues(alpha: 0.4),
                               width: 1.5,
                             ),
                             boxShadow: [
@@ -123,19 +140,19 @@ class _CategorySelectionPillState extends State<CategorySelectionPill> with Sing
                           child: Center(
                             child: widget.category.buildIconWidget(
                               color: color,
-                              size: 20,
+                              size: iconSize,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 18),
-                        
-                        // Right/Left Slot: High-contrast title label text
+                        SizedBox(width: iconLabelGap),
+
+                        // High-contrast title label text
                         Expanded(
                           child: Text(
                             displayName,
-                            style: GoogleFonts.montserrat(
+                            style: LanguageSettings.font(
                               color: Colors.white,
-                              fontSize: isArabic ? 18 : 20,
+                              fontSize: labelFontSize,
                               fontWeight: FontWeight.w500,
                               letterSpacing: isArabic ? 0.0 : 0.8,
                             ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/category_theme.dart';
 import '../models/language_settings.dart';
 
@@ -62,6 +61,9 @@ class _SystemNavigationButtonState extends State<SystemNavigationButton> with Si
   Widget build(BuildContext context) {
     final color = widget.category.accentColor;
     final isArabic = LanguageSettings.isArabic;
+
+    final screenH = MediaQuery.of(context).size.height;
+    final s = screenH / 812.0;
     
     // Gradient definitions mapping to the active theme color
     final primaryGradient = LinearGradient(
@@ -72,6 +74,16 @@ class _SystemNavigationButtonState extends State<SystemNavigationButton> with Si
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
+
+    final nextHPad = (16 * s).clamp(12.0, 24.0);
+    final nextVPad = (8 * s).clamp(6.0, 14.0);
+    final homeHPad = (32 * s).clamp(24.0, 48.0);
+    final homeVPad = (16 * s).clamp(12.0, 24.0);
+    final nextFontSize = (13 * s).clamp(11.0, 18.0);
+    final homeFontSize = (16 * s).clamp(13.0, 22.0);
+    final iconCirclePad = (3 * s).clamp(2.0, 5.0);
+    final iconSize = (11 * s).clamp(9.0, 16.0);
+    final textIconGap = (6 * s).clamp(4.0, 10.0);
 
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
@@ -99,23 +111,23 @@ class _SystemNavigationButtonState extends State<SystemNavigationButton> with Si
           ),
           child: Padding(
             padding: widget.type == NavButtonType.next
-                ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
-                : const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                ? EdgeInsets.symmetric(horizontal: nextHPad, vertical: nextVPad)
+                : EdgeInsets.symmetric(horizontal: homeHPad, vertical: homeVPad),
             child: widget.type == NavButtonType.next
                 ? Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         isArabic ? 'التالي' : 'Next',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 13,
+                        style: LanguageSettings.font(
+                          fontSize: nextFontSize,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: textIconGap),
                       Container(
-                        padding: const EdgeInsets.all(3),
+                        padding: EdgeInsets.all(iconCirclePad),
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
@@ -123,15 +135,15 @@ class _SystemNavigationButtonState extends State<SystemNavigationButton> with Si
                         child: Icon(
                           isArabic ? Icons.arrow_back_rounded : Icons.arrow_forward_rounded,
                           color: color,
-                          size: 11,
+                          size: iconSize,
                         ),
                       ),
                     ],
                   )
                 : Text(
                     isArabic ? 'الصفحة الرئيسية' : 'Home Page',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 16,
+                    style: LanguageSettings.font(
+                      fontSize: homeFontSize,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),

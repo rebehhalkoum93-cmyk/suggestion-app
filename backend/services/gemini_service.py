@@ -1,6 +1,8 @@
 import json
 import logging
 import random
+import urllib.request
+import urllib.error
 from typing import Dict, List, Any
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
@@ -11,6 +13,14 @@ from models.request_models import RecommendResponse, RecommendationItem
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+FALLBACK_IMAGES = {
+    "music": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Musical_notes.svg/1200px-Musical_notes.svg.png",
+    "movie": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Film_Reel_-_from_Metro-Goldwyn-Mayer_%281924%29.svg/1200px-Film_Reel_-_from_Metro-Goldwyn-Mayer_%281924%29.svg.png",
+    "series": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Television_set_icon.svg/1200px-Television_set_icon.svg.png",
+}
+
+REQUESTED_COUNT = 10
 
 # Initialize Gemini if key is provided
 gemini_available = False
@@ -199,6 +209,21 @@ MOCK_DATABASE = {
             "title": "the office",
             "imagePath": "https://image.tmdb.org/t/p/w500/7DJKHzAi83BmQrWLrYYOqcoKfhR.jpg",
             "tags": {"format": "episodic|reality", "tone": "low_stakes", "comfort_watch": "true", "hook": "dialogue", "pacing": "fast", "subgenre": "sitcom|dramedy", "ending": "uplifting|resolved", "resolution": "happy_ending"}
+        },
+        {
+            "title": "the last of us",
+            "imagePath": "https://image.tmdb.org/t/p/w500/uKvVjHNqB5VmOrdxqAt2F7J78e.jpg",
+            "tags": {"format": "multi_season", "seasons": ">3", "serialized": "high", "hook": "cliffhanger", "pacing": "slow_burn", "subgenre": "psychological_drama", "ending": "bittersweet|tragic", "resolution": "emotional"}
+        },
+        {
+            "title": "breaking bad",
+            "imagePath": "https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg",
+            "tags": {"format": "multi_season", "seasons": ">3", "serialized": "high", "hook": "cliffhanger", "pacing": "slow_burn", "subgenre": "mystery|conspiracy", "ending": "bittersweet|tragic", "resolution": "emotional"}
+        },
+        {
+            "title": "true detective",
+            "imagePath": "https://image.tmdb.org/t/p/w500/A9skq9FkFgDAD208MmUCnK6f3cY.jpg",
+            "tags": {"format": "limited_series", "runtime": "45-60m", "serialized": "high", "hook": "cliffhanger", "pacing": "slow_burn", "subgenre": "mystery|conspiracy", "ending": "twist|ambiguous", "resolution": "open_ended"}
         }
     ]
 }
@@ -229,13 +254,13 @@ def calculate_match_score(item_tags: Dict[str, str], query_tags: Dict[str, str])
 def get_local_recommendations(category: str, tags: Dict[str, str], excluded_titles: list = None) -> RecommendResponse:
     """
     Returns recommendations from the local mock database.
-    Picks 5 randomly from the top-8 scoring matches, skipping any excluded titles.
+    Picks 10 from the top scoring matches, strictly skipping any excluded titles.
+    Never re-suggests previously shown items.
     """
     cat = category.lower()
     database = MOCK_DATABASE.get(cat, MOCK_DATABASE["music"])
     excluded_lower = {t.lower().strip() for t in (excluded_titles or [])}
 
-    # Score all non-excluded items
     scored_items = []
     for item in database:
         if item["title"].lower() in excluded_lower:
@@ -243,21 +268,9 @@ def get_local_recommendations(category: str, tags: Dict[str, str], excluded_titl
         score = calculate_match_score(item["tags"], tags)
         scored_items.append((score, item))
 
-    # If we excluded too many and don't have enough, allow excluded ones back
-    if len(scored_items) < 5:
-        for item in database:
-            if item["title"].lower() in excluded_lower:
-                score = calculate_match_score(item["tags"], tags)
-                scored_items.append((score, item))
-
-    # Sort by score descending
     scored_items.sort(key=lambda x: x[0], reverse=True)
 
-    # Take top-8, shuffle, pick 5 — guarantees different results each call
-    pool_size = min(8, len(scored_items))
-    top_pool = scored_items[:pool_size]
-    random.shuffle(top_pool)
-    selected = top_pool[:5]
+    selected = scored_items[:REQUESTED_COUNT]
 
     recommendations = []
     for score, item in selected:
@@ -281,7 +294,7 @@ def get_local_recommendations(category: str, tags: Dict[str, str], excluded_titl
             )
         )
 
-    return RecommendResponse(recommendations=recommendations)
+    return RecommendResponse(recommendations=_repair_recommendations(recommendations, cat))
 
 
 RECOMMEND_RESPONSE_SCHEMA = {
@@ -322,12 +335,51 @@ RECOMMEND_RESPONSE_SCHEMA = {
 }
 
 
+def _validate_image_url(url: str, timeout: int = 5) -> bool:
+    """Check if an image URL is reachable via a HEAD request."""
+    if not url or not url.startswith("http"):
+        return False
+    try:
+        req = urllib.request.Request(url, method="HEAD")
+        req.add_header("User-Agent", "Mozilla/5.0")
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.status < 400
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError):
+        return False
+
+
+def _repair_recommendations(recs: List[RecommendationItem], category: str) -> List[RecommendationItem]:
+    """
+    Validate each recommendation's image URL.
+    Replace broken URLs with the category fallback image.
+    Drop items entirely if the title is empty.
+    """
+    cat = category.lower()
+    fallback = FALLBACK_IMAGES.get(cat, FALLBACK_IMAGES["movie"])
+    repaired = []
+    for item in recs:
+        if not item.title or not item.title.strip():
+            continue
+        if not _validate_image_url(item.imagePath):
+            logger.warning(f"Broken image URL for '{item.title}': {item.imagePath} — replacing with fallback")
+            item = RecommendationItem(
+                title=item.title,
+                subtitle=item.subtitle,
+                imagePath=fallback,
+                reason=item.reason,
+                confidence=item.confidence,
+            )
+        repaired.append(item)
+    return repaired
+
+
 # --- GEMINI CLIENT GENERATOR ---
 def get_recommendations(category: str, prompt: str, tags: Dict[str, str], excluded_titles: list = None) -> RecommendResponse:
     """
     Invokes the Google Gemini API with strict structured schema validation.
     If the API call fails or the key is not set, falls back to the Tag Matching Engine.
     Both paths respect excluded_titles to prevent repeat suggestions.
+    Every image URL is validated before returning.
     """
     if not gemini_available:
         logger.info("Gemini API not configured, defaulting to Local Tag-Matching Engine.")
@@ -352,13 +404,14 @@ def get_recommendations(category: str, prompt: str, tags: Dict[str, str], exclud
         data = json.loads(response_text)
         result = RecommendResponse(**data)
 
-        # Post-filter: remove any excluded titles Gemini may have hallucinated back
         if excluded_titles:
             excluded_lower = {t.lower().strip() for t in excluded_titles}
             result.recommendations = [
                 r for r in result.recommendations
                 if r.title.lower().strip() not in excluded_lower
             ]
+
+        result.recommendations = _repair_recommendations(result.recommendations, category)
 
         return result
 
